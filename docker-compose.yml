@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: timeslot_app
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: adminpassword
+      POSTGRES_DB: data_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data     # Named Docker volume
+      - ./initdb:/docker-entrypoint-initdb.d       # Optional init scripts
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:                                   # Declare persistent volume
