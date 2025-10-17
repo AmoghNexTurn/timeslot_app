@@ -16,8 +16,18 @@ CREATE TABLE IF NOT EXISTS bookings(
     HourlyRate INT not null
 );
 
+CREATE TABLE IF NOT EXISTS bids(
+    BidID SERIAL PRIMARY KEY,
+    BidderName varchar(40) NOT NULL,
+    WorkerName varchar(40) NOT NULL,
+    StartDate DATE not null,
+    EndDate DATE not null,
+    HoursBooked INTEGER[][],
+    HourlyRate INT not null
+);
+
 CREATE TABLE IF NOT EXISTS availability(
     AvailabilityID SERIAL PRIMARY KEY,
-    WorkerName VARCHAR(40) NOT NULL,
+    WorkerName VARCHAR(40) UNIQUE NOT NULL,
     AvailableHours INTEGER[][]
 );
