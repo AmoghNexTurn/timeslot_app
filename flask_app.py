@@ -8,6 +8,9 @@ from langchain_groq import ChatGroq
 import asyncio
 import os
 from dotenv import load_dotenv
+from flask_apscheduler import APScheduler
+
+scheduler = APScheduler()
 
 load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -47,5 +50,18 @@ def submit():
     print(response)
     return jsonify(response)
 
+def bid_accept():
+    with app.app_context():
+        asyncio.run(run_agent("Run the hourly bid accept function"))
+
 if __name__ == '__main__':
+    scheduler.init_app(app)
+    scheduler.start()
+
+    scheduler.add_job(
+        id='hourly_bid_job',
+        func=bid_accept,
+        trigger='cron',
+        second=0  # Runs at the 0th minute of every hour
+    )
     app.run(debug=True)
