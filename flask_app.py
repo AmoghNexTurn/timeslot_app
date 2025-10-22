@@ -33,7 +33,7 @@ async def run_agent(prompt):
             await session.initialize()
             tools = await load_mcp_tools(session)
             agent = create_react_agent(model, tools)
-            agent_response = await agent.ainvoke({"messages": prompt})
+            agent_response = await agent.ainvoke({"messages": prompt+"\nGive all table like responses in table-like output."})
             print(agent_response)
             return agent_response["messages"][-1].content
         
@@ -58,10 +58,10 @@ if __name__ == '__main__':
     scheduler.init_app(app)
     scheduler.start()
 
-    scheduler.add_job(
-        id='hourly_bid_job',
-        func=bid_accept,
-        trigger='cron',
-        second=0  # Runs at the 0th minute of every hour
-    )
+    # scheduler.add_job(
+    #     id='hourly_bid_job',
+    #     func=bid_accept,
+    #     trigger='cron',
+    #     second=0  # Runs at the 0th minute of every hour
+    # )
     app.run(debug=True)

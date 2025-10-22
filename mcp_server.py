@@ -6,6 +6,7 @@ import config
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 import psycopg2
+import hashlib
 
 load_dotenv()
 
@@ -68,22 +69,34 @@ def get_info(table: str):
     '''
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM %s;" % (table,))
+    if table != "users": 
+        cur.execute("SELECT * FROM %s;" % (table,))
+    else:
+        cur.execute("SELECT UserID, UserName, UserType, Classification from users;")
     rows = cur.fetchall()
     if len(rows) == 0:
         return f'No data in table {table}'
     cur.close()
     conn.close()
-    return rows
+    # for r in rows:
+    #     for d in r:
+    #         if isinstance(d, datetime):
+    #             d = d.strftime("%Y%m%d")
+    return json.dumps(rows, indent=4, default=str)
 
 @mcp.tool()
 def add_user(UserName: str, UserPassword: str, UserType: str, Classification: str) -> str:
     '''
     Function to add a user to the users table
     '''
+    encoded_string = UserPassword.encode('utf-8')
+    sha256_hash = hashlib.sha256()
+    sha256_hash.update(encoded_string)
+    UserPassword_hashed = sha256_hash.hexdigest()
+
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("INSERT INTO users (UserName, UserPassword, UserType, Classification) VALUES (%s, %s, %s, %s);", (UserName, UserPassword, UserType, Classification))
+    cur.execute("INSERT INTO users (UserName, UserPassword, UserType, Classification) VALUES (%s, %s, %s, %s);", (UserName, UserPassword_hashed, UserType, Classification))
     conn.commit()
     cur.close()
     conn.close()
