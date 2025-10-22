@@ -65,6 +65,7 @@ def conflict(StartDate: str, EndDate: str, HoursBooked: list, WorkerName: str) -
 def get_info(table: str) -> str:
     '''
     Get info from a table
+    AvailableHours/HoursBooked should be a 7x2 list of integers. For example, [[9,17], [], [], [], [], [10,16], []] means monday 9am to 5pm and and saturday 10 am to 4pm. When returning, convert to natural language.
     '''
     conn = get_db_connection()
     cur = conn.cursor()
@@ -196,6 +197,42 @@ def choose_bid(WorkerName: str) -> str:
     cur.close()
     conn.close()
     return str(bid)
+
+@mcp.tool()
+def edit_user_table(UserID, UserName, UserPassword, UserType, Classification) -> str:
+    '''
+    Function to user a user in the users table
+    '''
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM users where userID = %s;", (UserID,))
+    prev_entry = cur.fetchone()
+    prev_usertype = prev_entry[3]
+    if prev_usertype == "worker" and UserType != "worker":
+        cur.execute("DELETE FROM availability where workername = %s;", (prev_entry[1],))
+    cur.execute("UPDATE users set UserName = %s, UserPassword = %s, UserType = %s, Classification = %s where userid = %s;", (UserName, UserPassword, UserType, Classification, UserID))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return 'Updated!'
+
+@mcp.tool()
+def edit_availability(WorkerName: str, AvailableHours: list) -> str:
+    '''
+    This function is called alongside edit_user_table when a worker type user is edited. It doesn't need to be called explicitly.
+    Function to edit availability int the availability table when a worker type user edits their available hours.
+    AvailableHours should be a 7x2 list of integers. For example, [[9,17], [], [], [], [], [10,16], []] means monday 9am to 5pm and and saturday 10 am to 4pm.
+    '''
+    for h in range(len(AvailableHours)):
+        if len(AvailableHours[h]) == 0:
+            AvailableHours[h] = [-1, -1]
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("UPDATE availability set AvailableHours = %s where workername = %s;", (AvailableHours, WorkerName))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return 'Availability edited successfully'
 
 if __name__ == "__main__":
     mcp.run(transport="stdio")

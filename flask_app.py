@@ -16,6 +16,8 @@ model = llm = ChatGroq(
   model="qwen/qwen3-32b",
   groq_api_key=GROQ_API_KEY,
   temperature=0,
+  response_format={"type": "json_object"}
+
 )
 
 server_params = StdioServerParameters(
